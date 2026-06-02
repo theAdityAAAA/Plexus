@@ -145,7 +145,7 @@ const nodeRegistry = {
   }
 },
 
- "condition": async (config) => {
+  "condition": async (config) => {
   console.log("Evaluating condition...");
 
   // Simulate decision
@@ -154,13 +154,104 @@ const nodeRegistry = {
   console.log("Condition result:", result);
 
   return result;
-}
+  },
 
+  // --- TRIGGERS ---
+  "http-request": async (config, context) => {
+    console.log("Executing HTTP Request Trigger...");
+    return context.input;
+  },
+  "schedule": async (config, context) => {
+    console.log("Executing Schedule Trigger...");
+    return { timestamp: new Date().toISOString() };
+  },
+  "event-listener": async (config, context) => {
+    console.log("Executing Event Listener Trigger...");
+    return context.input;
+  },
 
+  // --- DATABASE & STORAGE ---
+  "db-query": async (config, context) => {
+    console.log(`Executing DB Query on ${config?.tableName || 'unknown'}...`);
+    await delay(500);
+    return { results: [{ id: 1, mockData: "Hello" }], count: 1 };
+  },
+  "db-insert": async (config, context) => {
+    console.log(`Executing DB Insert into ${config?.tableName || 'unknown'}...`);
+    await delay(500);
+    return { insertedId: "mock-id-123", success: true };
+  },
+  "db-delete": async (config, context) => {
+    console.log(`Executing DB Delete on ${config?.tableName || 'unknown'}...`);
+    await delay(500);
+    return { deletedCount: 1, success: true };
+  },
+  "file-operations": async (config, context) => {
+    console.log(`Executing File Operation (${config?.operation || 'Read'})...`);
+    await delay(300);
+    return { status: "success", fileData: "mock-file-content" };
+  },
 
+  // --- CONTROL FLOW ---
+  "loop": async (config, context) => {
+    console.log("Executing Loop...");
+    return { items: [1, 2, 3], currentItem: 1 };
+  },
+  "switch": async (config, context) => {
+    console.log("Executing Switch...");
+    return config?.defaultBranch || "Default";
+  },
+  "delay": async (config, context) => {
+    const amount = parseInt(config?.amount || 1, 10);
+    const ms = config?.timeUnit === "Seconds" ? amount * 1000 : amount;
+    console.log(`Delaying for ${ms} ms...`);
+    await delay(ms);
+    return { delayedMs: ms };
+  },
+  "error-catch": async (config, context) => {
+    console.log("Executing Error Catch...");
+    return { caughtError: "Mock Error Message" };
+  },
+  "merge": async (config, context) => {
+    console.log("Executing Merge...");
+    return { merged: true, data: context.input };
+  },
 
+  // --- DATA INTEGRATION ---
+  "external-api-call": async (config, context) => {
+    console.log(`Calling external API: ${config?.url || 'unknown'}...`);
+    try {
+      const response = await fetch(config?.url || 'https://jsonplaceholder.typicode.com/todos/1');
+      const data = await response.json();
+      return { status: response.status, data };
+    } catch (err) {
+      return { error: err.message };
+    }
+  },
+  "data-transformer": async (config, context) => {
+    console.log("Executing Data Transformer...");
+    return { ...context.input, transformed: true };
+  },
+  "custom-script": async (config, context) => {
+    console.log("Executing Custom Script...");
+    return { scriptOutput: "Success" }; 
+  },
 
-
+  // --- AI & ML ---
+  "llm-prompt": async (config, context) => {
+    console.log("Executing LLM Prompt...");
+    await delay(1000);
+    return { text: "This is a mock LLM response based on the prompt.", usage: { tokens: 42 } };
+  },
+  "model-inference": async (config, context) => {
+    console.log("Executing Model Inference...");
+    await delay(1000);
+    return { prediction: "mock-prediction-result", confidence: 0.95 };
+  },
+  "text-processing": async (config, context) => {
+    console.log(`Executing Text Processing (${config?.operation || 'Summarize'})...`);
+    return { result: "Mock processed text result" };
+  }
 };
 
 module.exports = nodeRegistry;

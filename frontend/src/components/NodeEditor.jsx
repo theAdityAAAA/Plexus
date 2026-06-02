@@ -1,6 +1,7 @@
 import React from "react";
 import { useWorkflowStore } from "../store/workflowStore";
 import MonacoCodeEditor from "./MonacoCodeEditor";
+import { nodeSchemas, nodeDefaultCode } from "../config/nodeSchemas";
 
 export default function NodeEditor() {
   const selectedNode = useWorkflowStore((state) => state.selectedNode);
@@ -22,13 +23,13 @@ export default function NodeEditor() {
     <div
       className="position-absolute p-4 d-flex flex-column"
       style={{
-        top: 80,
+        top: 10,
         right: 20,
+        bottom: 20,
         background: "#1e293b",
         borderRadius: 12,
         zIndex: 10,
         width: 400,
-        height: "calc(100vh - 100px)",
         boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
         overflowY: "auto"
       }}
@@ -58,28 +59,36 @@ export default function NodeEditor() {
           />
         </div>
         
-        {selectedNode.data.type === "email-send" && (
-          <>
-            <div className="mb-3">
-              <label className="text-muted small">To Email (Optional Override)</label>
+        {(nodeSchemas[selectedNode.data.type] || []).map((field) => (
+          <div key={field.key} className="mb-3">
+            <label className="text-muted small">{field.label}</label>
+            {field.type === "select" ? (
+              <select
+                className="form-select bg-dark text-white border-secondary"
+                value={selectedNode.data.config?.[field.key] ?? field.default}
+                onChange={(e) => handleConfigChange(field.key, e.target.value)}
+              >
+                {field.options?.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              </select>
+            ) : field.type === "checkbox" ? (
+              <div className="form-check mt-1">
+                <input
+                  type="checkbox"
+                  className="form-check-input border-secondary"
+                  checked={selectedNode.data.config?.[field.key] ?? field.default}
+                  onChange={(e) => handleConfigChange(field.key, e.target.checked)}
+                />
+              </div>
+            ) : (
               <input
-                type="text"
+                type={field.type}
                 className="form-control bg-dark text-white border-secondary"
-                value={selectedNode.data.config?.to || ""}
-                onChange={(e) => handleConfigChange("to", e.target.value)}
+                value={selectedNode.data.config?.[field.key] ?? field.default}
+                onChange={(e) => handleConfigChange(field.key, e.target.value)}
               />
-            </div>
-            <div className="mb-3">
-              <label className="text-muted small">Subject</label>
-              <input
-                type="text"
-                className="form-control bg-dark text-white border-secondary"
-                value={selectedNode.data.config?.subject || ""}
-                onChange={(e) => handleConfigChange("subject", e.target.value)}
-              />
-            </div>
-          </>
-        )}
+            )}
+          </div>
+        ))}
       </div>
 
       {/* User Hook Code */}
@@ -90,7 +99,7 @@ export default function NodeEditor() {
         </p>
         <div className="flex-grow-1 min-vh-25">
           <MonacoCodeEditor
-            code={selectedNode.data.userCode || `function execute(input, context) {\n  return {\n    ...input,\n    processedAt: new Date().toISOString()\n  };\n}`}
+            code={selectedNode.data.userCode || nodeDefaultCode[selectedNode.data.type] || nodeDefaultCode["default"]}
             onChange={handleCodeChange}
           />
         </div>

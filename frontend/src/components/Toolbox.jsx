@@ -11,11 +11,40 @@ export default function Toolbox() {
   const [searchTerm, setSearchTerm] = useState("");
 
   const builtInNodes = [
+    // Core
     { type: "webhook-trigger", label: "🌐 Webhook Trigger", category: "Core" },
     { type: "payment-check", label: "💳 Payment", category: "Core" },
-    { type: "db-update", label: "🗄 DB Update", category: "Core" },
     { type: "email-send", label: "📧 Email", category: "Core" },
-    { type: "condition", label: "🔀 Condition", category: "Logic" }
+    { type: "condition", label: "🔀 Condition", category: "Core" },
+
+    // TRIGGERS
+    { type: "http-request", label: "🌍 HTTP Request", category: "Triggers" },
+    { type: "schedule", label: "⏱ Schedule/Cron", category: "Triggers" },
+    { type: "event-listener", label: "📡 Event Listener", category: "Triggers" },
+
+    // DATABASE & STORAGE
+    { type: "db-query", label: "🔍 DB Query/Read", category: "Database" },
+    { type: "db-insert", label: "➕ DB Insert/Create", category: "Database" },
+    { type: "db-update", label: "✏️ DB Update", category: "Database" },
+    { type: "db-delete", label: "🗑 DB Delete", category: "Database" },
+    { type: "file-operations", label: "📁 File Operations", category: "Database" },
+
+    // CONTROL FLOW
+    { type: "loop", label: "🔄 Loop/Iterator", category: "Control Flow" },
+    { type: "switch", label: "🛤 Switch/Router", category: "Control Flow" },
+    { type: "delay", label: "⏳ Delay", category: "Control Flow" },
+    { type: "error-catch", label: "⚠️ Error Catch", category: "Control Flow" },
+    { type: "merge", label: "🔗 Merge", category: "Control Flow" },
+
+    // DATA INTEGRATION
+    { type: "external-api-call", label: "🔗 External API Call", category: "Data Integration" },
+    { type: "data-transformer", label: "🛠 Data Transformer", category: "Data Integration" },
+    { type: "custom-script", label: "📜 Custom Script", category: "Data Integration" },
+
+    // AI & ML
+    { type: "llm-prompt", label: "🤖 LLM Prompt", category: "AI & ML" },
+    { type: "model-inference", label: "🧠 Model Inference", category: "AI & ML" },
+    { type: "text-processing", label: "📝 Text Processing", category: "AI & ML" }
   ];
 
   const allNodes = [
@@ -34,13 +63,13 @@ export default function Toolbox() {
     <div
       className="position-absolute p-3 d-flex flex-column"
       style={{
-        top: 80,
+        top: 10,
         left: 20,
+        bottom: 20,
         background: "#1e293b",
         borderRadius: 12,
         zIndex: 10,
         width: 280,
-        height: "calc(100vh - 100px)",
         boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)"
       }}
     >
@@ -54,10 +83,10 @@ export default function Toolbox() {
         onChange={(e) => setSearchTerm(e.target.value)}
       />
 
-      <div className="flex-grow-1 overflow-auto pe-2 custom-scrollbar">
+      <div className="flex-grow-1 overflow-auto pe-2 custom-scrollbar" style={{ minHeight: 0 }}>
         {categories.map(cat => (
           <div key={cat} className="mb-3">
-            <h6 className="text-muted text-uppercase" style={{ fontSize: '0.75rem', letterSpacing: '1px' }}>{cat}</h6>
+            <h6 className="text-uppercase mb-2" style={{ color: '#94a3b8', fontSize: '0.75rem', letterSpacing: '1px', fontWeight: 600 }}>{cat}</h6>
             {allNodes.filter(n => n.category === cat).map(node => (
               <div key={node.type} className="d-flex mb-2 gap-2">
                 <button
@@ -96,7 +125,7 @@ export default function Toolbox() {
         ))}
       </div>
 
-      <div className="mt-3 pt-3 border-top border-secondary">
+      <div className="mt-3 pt-3 border-top border-secondary flex-shrink-0">
         <button
           className="btn btn-primary btn-sm w-100 mb-2 py-2"
           style={{ borderRadius: '8px', fontWeight: 'bold' }}
@@ -105,41 +134,44 @@ export default function Toolbox() {
           ✨ Create Custom Node
         </button>
         
-        {/* IMPORT NODE */}
-        <label className="btn btn-outline-info btn-sm w-100 mb-2 py-2" style={{ borderRadius: '8px' }}>
-          📂 Import Node (.nexusnode)
-          <input
-            type="file"
-            accept=".nexusnode"
-            style={{ display: "none" }}
-            onChange={async (e) => {
-              const file = e.target.files[0];
-              if (!file) return;
-              const reader = new FileReader();
-              reader.onload = async (event) => {
-                try {
-                  const nodeData = JSON.parse(event.target.result);
-                  const success = await useNodeStore.getState().createCustomNode(nodeData);
-                  if (success) alert("Node Imported Successfully!");
-                } catch (err) {
-                  alert("Invalid node file");
-                }
-              };
-              reader.readAsText(file);
-            }}
-          />
-        </label>
+        <div className="d-flex gap-2">
+          {/* IMPORT NODE */}
+          <label className="btn btn-outline-info btn-sm w-50 mb-0 py-2 d-flex align-items-center justify-content-center" style={{ borderRadius: '8px', cursor: 'pointer' }}>
+            <span className="text-truncate">📂 Import</span>
+            <input
+              type="file"
+              accept=".nexusnode"
+              style={{ display: "none" }}
+              onChange={async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = async (event) => {
+                  try {
+                    const nodeData = JSON.parse(event.target.result);
+                    const success = await useNodeStore.getState().createCustomNode(nodeData);
+                    if (success) alert("Node Imported Successfully!");
+                  } catch (err) {
+                    alert("Invalid node file");
+                  }
+                };
+                reader.readAsText(file);
+              }}
+            />
+          </label>
 
-        <button
-          className="btn btn-outline-danger btn-sm w-100 py-2"
-          style={{ borderRadius: '8px' }}
-          onClick={() => {
-            setNodes([]);
-            setEdges([]);
-          }}
-        >
-          🗑 Clear Canvas
-        </button>
+          {/* CLEAR CANVAS */}
+          <button
+            className="btn btn-outline-danger btn-sm w-50 py-2 d-flex align-items-center justify-content-center"
+            style={{ borderRadius: '8px' }}
+            onClick={() => {
+              setNodes([]);
+              setEdges([]);
+            }}
+          >
+            <span className="text-truncate">🗑 Clear</span>
+          </button>
+        </div>
       </div>
     </div>
   );
