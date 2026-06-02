@@ -6,7 +6,8 @@ const mongoose = require("mongoose");
 const nodeSchema = new mongoose.Schema({
   id: { type: String, required: true },
   type: { type: String, required: true },
-  config: { type: Object, default: {} }
+  config: { type: Object, default: {} },
+  userCode: { type: String, default: "" }
 });
 
 /* =========================

@@ -81,14 +81,32 @@ const nodeRegistry = {
     console.log("Webhook Input:");
     console.log(context.input);
 
+    let activeTransporter = transporter;
+
+    // Use Ethereal fake SMTP if real credentials aren't provided
+    if (!process.env.EMAIL_USER || process.env.EMAIL_USER === "#") {
+      console.log("No real email credentials found, generating Ethereal test account...");
+      const testAccount = await nodemailer.createTestAccount();
+      activeTransporter = nodemailer.createTransport({
+        host: "smtp.ethereal.email",
+        port: 587,
+        secure: false,
+        auth: {
+          user: testAccount.user,
+          pass: testAccount.pass
+        }
+      });
+    }
+
     const mailOptions = {
-      from: process.env.EMAIL_USER,
+      from: process.env.EMAIL_USER && process.env.EMAIL_USER !== "#" ? process.env.EMAIL_USER : '"NexusFlow Engine" <test@ethereal.email>',
 
       // ✅ Receiver from webhook payload
       to:
         context?.input?.email ||
         config?.to ||
-        process.env.EMAIL_USER,
+        process.env.EMAIL_USER ||
+        "user@example.com",
 
       subject:
         config?.subject ||
@@ -98,25 +116,19 @@ const nodeRegistry = {
         config?.message ||
         `Hello ${
           context?.input?.name || "User"
-        },
-
-Your workflow executed successfully 🚀`
+        },\n\nYour workflow executed successfully 🚀`
     };
 
-    console.log(
-      "Sending TO:",
-      mailOptions.to
-    );
+    console.log("Sending TO:", mailOptions.to);
 
-    const info =
-      await transporter.sendMail(
-        mailOptions
-      );
+    const info = await activeTransporter.sendMail(mailOptions);
 
-    console.log(
-      "Email sent successfully:",
-      info.response
-    );
+    console.log("Email sent successfully:", info.messageId);
+    
+    // Log preview URL if using Ethereal
+    if (!process.env.EMAIL_USER || process.env.EMAIL_USER === "#") {
+      console.log("📧 Preview your test email here: " + nodemailer.getTestMessageUrl(info));
+    }
 
     return {
       success: true,
@@ -137,7 +149,7 @@ Your workflow executed successfully 🚀`
   console.log("Evaluating condition...");
 
   // Simulate decision
-  const result = Math.random() > 0.5 ? "success" : "failure";
+  const result = Math.random() > 0.5 ? "True" : "False";
 
   console.log("Condition result:", result);
 
