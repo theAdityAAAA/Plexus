@@ -74,7 +74,7 @@ export const useWorkflowStore = create((set, get) => ({
   },
 
   fetchWorkflows: async () => {
-    const res = await axios.get("http://localhost:5000/api/workflows");
+    const res = await axios.get("http://localhost:5005/api/workflows");
     set({ workflowList: res.data.data });
   },
 
@@ -117,7 +117,7 @@ export const useWorkflowStore = create((set, get) => ({
         }))
       };
 
-      const res = await axios.post("http://localhost:5000/api/workflows", workflow);
+      const res = await axios.post("http://localhost:5005/api/workflows", workflow);
       set({ workflowId: res.data.data._id });
       alert("Workflow Saved 🚀");
     } catch (error) {
@@ -129,6 +129,6 @@ export const useWorkflowStore = create((set, get) => ({
   runWorkflow: async () => {
     const { workflowId } = get();
     if (!workflowId) return alert("Save workflow first!");
-    await axios.post(`http://localhost:5000/api/workflows/${workflowId}/execute`);
+    await axios.post(`http://localhost:5005/api/workflows/${workflowId}/execute`);
   }
 }));

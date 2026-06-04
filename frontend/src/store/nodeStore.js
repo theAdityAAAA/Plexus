@@ -9,7 +9,7 @@ export const useNodeStore = create((set, get) => ({
 
   fetchCustomNodes: async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/custom-nodes");
+      const res = await axios.get("http://localhost:5005/api/custom-nodes");
       set({ customNodes: res.data.data });
     } catch (error) {
       console.error("Failed to fetch custom nodes", error);
@@ -30,7 +30,7 @@ export const useNodeStore = create((set, get) => ({
 
   deleteCustomNode: async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/custom-nodes/${id}`);
+      await axios.delete(`http://localhost:5005/api/custom-nodes/${id}`);
       set({ customNodes: get().customNodes.filter(n => n._id !== id) });
     } catch (error) {
       console.error("Failed to delete custom node", error);
