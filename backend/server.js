@@ -35,6 +35,14 @@ const io = new Server(server, {
 // 🔥 VERY IMPORTANT
 app.set("io", io);
 
-server.listen(5005, () => {
-  console.log("Server running on port 5005");
+const { initTriggers } = require("./services/trigger.service");
+
+app.set("io", io);
+
+initTriggers(app, io);
+
+const PORT = process.env.PORT || 5005;
+
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });

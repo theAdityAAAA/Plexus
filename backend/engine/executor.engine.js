@@ -363,9 +363,9 @@ const executeStep = async (executionId, io) => {
   }
 
   // ---------------------------------
-  // CONDITION NODE
+  // CONDITION OR SWITCH NODE
   // ---------------------------------
-  if (node.type === "condition") {
+  if (node.type === "condition" || node.type === "switch") {
     const normalizedResult =
       String(result)
         .trim()
