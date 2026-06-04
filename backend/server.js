@@ -4,11 +4,16 @@ const http = require("http");
 const { Server } = require("socket.io");
 require("dotenv").config();
 const connectDB = require("./config/db");
-
+const {
+  plexusMiddleware
+} = require("plexus-sdk");
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(
+  plexusMiddleware()
+);
 
 connectDB();
 
@@ -27,6 +32,6 @@ const io = new Server(server, {
 // 🔥 VERY IMPORTANT
 app.set("io", io);
 
-server.listen(5000, () => {
-  console.log("Server running on port 5000");
+server.listen(5005, () => {
+  console.log("Server running on port 5005");
 });
