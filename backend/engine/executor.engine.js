@@ -1,5 +1,8 @@
 const Workflow = require("../models/workflow.model");
 const Execution = require("../models/execution.model");
+const CustomNode = require("../models/customNode.model");
+const { executeInSandbox } = require("../services/sandbox.service");
+const crypto = require("crypto");
 
 const nodeRegistry = require("../services/node.service");
 
@@ -13,7 +16,7 @@ const executorEngine = async (
   io,
   inputData = {}
 ) => {
-  const executionId = Date.now().toString();
+  const executionId = crypto.randomUUID();
 
   // ---------------------------------
   // GLOBAL EXECUTION CONTEXT
@@ -96,6 +99,7 @@ const executeStep = async (executionId, io) => {
       }
     );
 
+    runningExecutions.delete(executionId);
     return;
   }
 
@@ -160,6 +164,7 @@ const executeStep = async (executionId, io) => {
       "Workflow execution finished 🚀"
     );
 
+    runningExecutions.delete(executionId);
     return;
   }
 
@@ -181,32 +186,28 @@ const executeStep = async (executionId, io) => {
       }
     );
 
+    runningExecutions.delete(executionId);
     return;
   }
 
   // ---------------------------------
-  // GET NODE HANDLER
+  // GET NODE HANDLER / CUSTOM NODE
   // ---------------------------------
-  const handler =
-    nodeRegistry[node.type];
+  let handler = nodeRegistry[node.type];
+  let customNode = null;
 
   if (!handler) {
-    console.error(
-      "No handler for:",
-      node.type
-    );
-
-    execution.status = "failed";
-
-    await Execution.findOneAndUpdate(
-      { executionId },
-      {
-        status: "failed",
-        completedAt: new Date()
-      }
-    );
-
-    return;
+    customNode = await CustomNode.findOne({ type: node.type });
+    if (!customNode) {
+      console.error("No handler or custom node for:", node.type);
+      execution.status = "failed";
+      await Execution.findOneAndUpdate(
+        { executionId },
+        { status: "failed", completedAt: new Date() }
+      );
+      runningExecutions.delete(executionId);
+      return;
+    }
   }
 
   // ---------------------------------
@@ -221,12 +222,23 @@ const executeStep = async (executionId, io) => {
 
   try {
     // ---------------------------------
-    // EXECUTE NODE
+    // EXECUTE CORE LOGIC
     // ---------------------------------
-    result = await handler(
-      node.config,
-      executionContext
-    );
+    if (handler) {
+      result = await handler(node.config, executionContext);
+    } else {
+      // For custom nodes, default input is the global workflow input
+      result = executionContext.input;
+    }
+
+    // ---------------------------------
+    // EXECUTE USER HOOK / CUSTOM CODE
+    // ---------------------------------
+    const userCode = node.userCode || (customNode ? customNode.code : null);
+    if (userCode) {
+      console.log(`Executing sandbox for node: ${currentNodeId}`);
+      result = await executeInSandbox(userCode, result, executionContext);
+    }
 
     // ---------------------------------
     // STORE OUTPUT
@@ -304,6 +316,7 @@ const executeStep = async (executionId, io) => {
 
     execution.status = "failed";
 
+    runningExecutions.delete(executionId);
     return;
   }
 
@@ -345,6 +358,7 @@ const executeStep = async (executionId, io) => {
       executionContext.outputs
     );
 
+    runningExecutions.delete(executionId);
     return;
   }
 
@@ -397,6 +411,7 @@ const executeStep = async (executionId, io) => {
         }
       );
 
+      runningExecutions.delete(executionId);
       return;
     }
 

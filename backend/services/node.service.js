@@ -81,14 +81,32 @@ const nodeRegistry = {
     console.log("Webhook Input:");
     console.log(context.input);
 
+    let activeTransporter = transporter;
+
+    // Use Ethereal fake SMTP if real credentials aren't provided
+    if (!process.env.EMAIL_USER || process.env.EMAIL_USER === "#") {
+      console.log("No real email credentials found, generating Ethereal test account...");
+      const testAccount = await nodemailer.createTestAccount();
+      activeTransporter = nodemailer.createTransport({
+        host: "smtp.ethereal.email",
+        port: 587,
+        secure: false,
+        auth: {
+          user: testAccount.user,
+          pass: testAccount.pass
+        }
+      });
+    }
+
     const mailOptions = {
-      from: process.env.EMAIL_USER,
+      from: process.env.EMAIL_USER && process.env.EMAIL_USER !== "#" ? process.env.EMAIL_USER : '"NexusFlow Engine" <test@ethereal.email>',
 
       // ✅ Receiver from webhook payload
       to:
         context?.input?.email ||
         config?.to ||
-        process.env.EMAIL_USER,
+        process.env.EMAIL_USER ||
+        "user@example.com",
 
       subject:
         config?.subject ||
@@ -98,25 +116,19 @@ const nodeRegistry = {
         config?.message ||
         `Hello ${
           context?.input?.name || "User"
-        },
-
-Your workflow executed successfully 🚀`
+        },\n\nYour workflow executed successfully 🚀`
     };
 
-    console.log(
-      "Sending TO:",
-      mailOptions.to
-    );
+    console.log("Sending TO:", mailOptions.to);
 
-    const info =
-      await transporter.sendMail(
-        mailOptions
-      );
+    const info = await activeTransporter.sendMail(mailOptions);
 
-    console.log(
-      "Email sent successfully:",
-      info.response
-    );
+    console.log("Email sent successfully:", info.messageId);
+    
+    // Log preview URL if using Ethereal
+    if (!process.env.EMAIL_USER || process.env.EMAIL_USER === "#") {
+      console.log("📧 Preview your test email here: " + nodemailer.getTestMessageUrl(info));
+    }
 
     return {
       success: true,
@@ -133,22 +145,113 @@ Your workflow executed successfully 🚀`
   }
 },
 
- "condition": async (config) => {
+  "condition": async (config) => {
   console.log("Evaluating condition...");
 
   // Simulate decision
-  const result = Math.random() > 0.5 ? "success" : "failure";
+  const result = Math.random() > 0.5 ? "True" : "False";
 
   console.log("Condition result:", result);
 
   return result;
-}
+  },
 
+  // --- TRIGGERS ---
+  "http-request": async (config, context) => {
+    console.log("Executing HTTP Request Trigger...");
+    return context.input;
+  },
+  "schedule": async (config, context) => {
+    console.log("Executing Schedule Trigger...");
+    return { timestamp: new Date().toISOString() };
+  },
+  "event-listener": async (config, context) => {
+    console.log("Executing Event Listener Trigger...");
+    return context.input;
+  },
 
+  // --- DATABASE & STORAGE ---
+  "db-query": async (config, context) => {
+    console.log(`Executing DB Query on ${config?.tableName || 'unknown'}...`);
+    await delay(500);
+    return { results: [{ id: 1, mockData: "Hello" }], count: 1 };
+  },
+  "db-insert": async (config, context) => {
+    console.log(`Executing DB Insert into ${config?.tableName || 'unknown'}...`);
+    await delay(500);
+    return { insertedId: "mock-id-123", success: true };
+  },
+  "db-delete": async (config, context) => {
+    console.log(`Executing DB Delete on ${config?.tableName || 'unknown'}...`);
+    await delay(500);
+    return { deletedCount: 1, success: true };
+  },
+  "file-operations": async (config, context) => {
+    console.log(`Executing File Operation (${config?.operation || 'Read'})...`);
+    await delay(300);
+    return { status: "success", fileData: "mock-file-content" };
+  },
 
+  // --- CONTROL FLOW ---
+  "loop": async (config, context) => {
+    console.log("Executing Loop...");
+    return { items: [1, 2, 3], currentItem: 1 };
+  },
+  "switch": async (config, context) => {
+    console.log("Executing Switch...");
+    return config?.defaultBranch || "Default";
+  },
+  "delay": async (config, context) => {
+    const amount = parseInt(config?.amount || 1, 10);
+    const ms = config?.timeUnit === "Seconds" ? amount * 1000 : amount;
+    console.log(`Delaying for ${ms} ms...`);
+    await delay(ms);
+    return { delayedMs: ms };
+  },
+  "error-catch": async (config, context) => {
+    console.log("Executing Error Catch...");
+    return { caughtError: "Mock Error Message" };
+  },
+  "merge": async (config, context) => {
+    console.log("Executing Merge...");
+    return { merged: true, data: context.input };
+  },
 
+  // --- DATA INTEGRATION ---
+  "external-api-call": async (config, context) => {
+    console.log(`Calling external API: ${config?.url || 'unknown'}...`);
+    try {
+      const response = await fetch(config?.url || 'https://jsonplaceholder.typicode.com/todos/1');
+      const data = await response.json();
+      return { status: response.status, data };
+    } catch (err) {
+      return { error: err.message };
+    }
+  },
+  "data-transformer": async (config, context) => {
+    console.log("Executing Data Transformer...");
+    return { ...context.input, transformed: true };
+  },
+  "custom-script": async (config, context) => {
+    console.log("Executing Custom Script...");
+    return { scriptOutput: "Success" }; 
+  },
 
-
+  // --- AI & ML ---
+  "llm-prompt": async (config, context) => {
+    console.log("Executing LLM Prompt...");
+    await delay(1000);
+    return { text: "This is a mock LLM response based on the prompt.", usage: { tokens: 42 } };
+  },
+  "model-inference": async (config, context) => {
+    console.log("Executing Model Inference...");
+    await delay(1000);
+    return { prediction: "mock-prediction-result", confidence: 0.95 };
+  },
+  "text-processing": async (config, context) => {
+    console.log(`Executing Text Processing (${config?.operation || 'Summarize'})...`);
+    return { result: "Mock processed text result" };
+  }
 };
 
 module.exports = nodeRegistry;
