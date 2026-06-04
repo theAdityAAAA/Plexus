@@ -30,6 +30,9 @@ const io = new Server(server, {
 // 🔥 VERY IMPORTANT
 app.set("io", io);
 
+const { initTriggers } = require("./services/trigger.service");
+initTriggers(app, io);
+
 server.listen(5000, () => {
   console.log("Server running on port 5000");
 });

@@ -94,7 +94,7 @@ export default function NodeEditor() {
       {/* User Hook Code */}
       <div className="mb-4 flex-grow-1 d-flex flex-column">
         <h6 className="text-white mb-2">User Hook Code</h6>
-        <p className="text-muted small mb-3">
+        <p className="text-white-50 small mb-3">
           Write custom logic to modify outputs or interact with context. Must implement <code>execute(input, context)</code>.
         </p>
         <div className="flex-grow-1 min-vh-25">
