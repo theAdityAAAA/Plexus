@@ -9,6 +9,7 @@ export const useWorkflowStore = create((set, get) => ({
   workflowList: [],
   selectedEdge: null,
   selectedNode: null,
+  nodeExecutionData: {},
 
   setNodes: (nodes) => set({ nodes }),
   setEdges: (edges) => set({ edges }),
@@ -57,21 +58,50 @@ export const useWorkflowStore = create((set, get) => ({
     }
   },
 
-  updateNodeStatus: (id, status) => {
-    set({
-      nodes: get().nodes.map((n) =>
-        n.id === id
-          ? {
-              ...n,
-              style: {
-                background: status === "completed" ? "#28a745" : status === "failed" ? "#dc3545" : "#ffc107",
-                color: "white"
-              }
+  updateNodeStatus: (
+  id,
+  status,
+  output = null,
+  error = null,
+  duration = null
+) => {
+   console.log("STATUS FOR:", id);
+
+  console.log(
+    "AVAILABLE NODES:",
+    get().nodes.map(n => n.id)
+  );
+  set({
+    nodeExecutionData: {
+      ...get().nodeExecutionData,
+
+      [id]: {
+        status,
+        output,
+        error,
+        duration,
+        updatedAt: new Date()
+      }
+    },
+
+    nodes: get().nodes.map((n) =>
+      n.id === id
+        ? {
+            ...n,
+            style: {
+              background:
+                status === "completed"
+                  ? "#28a745"
+                  : status === "failed"
+                  ? "#dc3545"
+                  : "#ffc107",
+              color: "white"
             }
-          : n
-      )
-    });
-  },
+          }
+        : n
+    )
+  });
+},
 
   fetchWorkflows: async () => {
     const res = await axios.get("http://localhost:5005/api/workflows");

@@ -213,10 +213,16 @@ const executeStep = async (executionId, io) => {
   // ---------------------------------
   // SOCKET STATUS → RUNNING
   // ---------------------------------
-  io.emit("node-status", {
-    node: currentNodeId,
-    status: "running"
-  });
+ console.log("EMIT RUNNING:", currentNodeId);
+
+io.emit("node-status", {
+  node: currentNodeId,
+  status: "running"
+});
+
+  const startTime = Date.now();
+  let duration = 0;
+
 
   let result;
 
@@ -240,6 +246,9 @@ const executeStep = async (executionId, io) => {
       result = await executeInSandbox(userCode, result, executionContext);
     }
 
+ const endTime = Date.now();
+duration = endTime - startTime;
+
     // ---------------------------------
     // STORE OUTPUT
     // ---------------------------------
@@ -254,6 +263,9 @@ const executeStep = async (executionId, io) => {
       nodeId: currentNodeId,
       status: "completed",
       output: result,
+      duration,
+      startedAt: new Date(startTime),
+      endedAt: new Date(endTime),
       timestamp: new Date()
     });
 
@@ -273,6 +285,9 @@ const executeStep = async (executionId, io) => {
             nodeId: currentNodeId,
             status: "completed",
             output: result,
+            duration,
+            startedAt: new Date(startTime),
+            endedAt: new Date(endTime),
             timestamp: new Date()
           }
         }
@@ -283,16 +298,23 @@ const executeStep = async (executionId, io) => {
       "Node execution failed:",
       err
     );
+    const endTime = Date.now();
+duration = endTime - startTime;
 
     io.emit("node-status", {
       node: currentNodeId,
-      status: "failed"
+      status: "failed",
+      error: err.message,
+      duration
     });
 
     executionContext.logs.push({
       nodeId: currentNodeId,
       status: "failed",
       error: err.message,
+      duration,
+      startedAt: new Date(startTime),
+      endedAt: new Date(endTime),
       timestamp: new Date()
     });
 
@@ -306,6 +328,9 @@ const executeStep = async (executionId, io) => {
             nodeId: currentNodeId,
             status: "failed",
             error: err.message,
+            duration,
+            startedAt: new Date(startTime),
+            endedAt: new Date(endTime),
             timestamp: new Date()
           }
         },
@@ -323,11 +348,14 @@ const executeStep = async (executionId, io) => {
   // ---------------------------------
   // SOCKET STATUS → COMPLETED
   // ---------------------------------
-  io.emit("node-status", {
-    node: currentNodeId,
-    status: "completed"
-  });
+console.log("EMIT COMPLETED:", currentNodeId);
 
+io.emit("node-status", {
+   node: currentNodeId,
+   status: "completed",
+  output: result,
+  duration
+});
   const outgoingEdges =
     edgeMap[currentNodeId];
 
@@ -399,12 +427,11 @@ const executeStep = async (executionId, io) => {
 
           $push: {
             logs: {
-              nodeId: currentNodeId,
-              status: "failed",
-              error:
-                "No matching condition branch",
-              timestamp: new Date()
-            }
+  nodeId: currentNodeId,
+  status: "failed",
+  error: `No matching branch found for: ${result}`,
+  timestamp: new Date()
+}
           },
 
           completedAt: new Date()
