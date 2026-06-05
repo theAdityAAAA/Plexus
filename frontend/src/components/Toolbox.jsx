@@ -7,6 +7,7 @@ export default function Toolbox() {
   const setNodes = useWorkflowStore(state => state.setNodes);
   const setEdges = useWorkflowStore(state => state.setEdges);
   const customNodes = useNodeStore(state => state.customNodes);
+  const deleteCustomNode = useNodeStore(state => state.deleteCustomNode);
   const setWizardOpen = useNodeStore(state => state.setWizardOpen);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -101,23 +102,40 @@ export default function Toolbox() {
                   {node.label}
                 </button>
                 {node.isCustom && (
-                  <button 
-                    className="btn btn-sm btn-outline-secondary" 
-                    style={{ borderRadius: '8px' }}
-                    title="Export Node"
-                    onClick={() => {
-                      const fullNode = customNodes.find(n => n.type === node.type);
-                      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(fullNode, null, 2));
-                      const downloadAnchorNode = document.createElement('a');
-                      downloadAnchorNode.setAttribute("href", dataStr);
-                      downloadAnchorNode.setAttribute("download", `${fullNode.name.replace(/\s+/g, '')}.nexusnode`);
-                      document.body.appendChild(downloadAnchorNode);
-                      downloadAnchorNode.click();
-                      downloadAnchorNode.remove();
-                    }}
-                  >
-                    💾
-                  </button>
+                  <>
+                    <button 
+                      className="btn btn-sm btn-outline-secondary" 
+                      style={{ borderRadius: '8px' }}
+                      title="Export Node"
+                      onClick={() => {
+                        const fullNode = customNodes.find(n => n.type === node.type);
+                        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(fullNode, null, 2));
+                        const downloadAnchorNode = document.createElement('a');
+                        downloadAnchorNode.setAttribute("href", dataStr);
+                        downloadAnchorNode.setAttribute("download", `${fullNode.name.replace(/\s+/g, '')}.nexusnode`);
+                        document.body.appendChild(downloadAnchorNode);
+                        downloadAnchorNode.click();
+                        downloadAnchorNode.remove();
+                      }}
+                    >
+                      💾
+                    </button>
+                    <button 
+                      className="btn btn-sm btn-outline-danger" 
+                      style={{ borderRadius: '8px' }}
+                      title="Delete Node"
+                      onClick={() => {
+                        if (window.confirm("Are you sure you want to delete this custom node?")) {
+                          const fullNode = customNodes.find(n => n.type === node.type);
+                          if (fullNode && fullNode._id) {
+                            deleteCustomNode(fullNode._id);
+                          }
+                        }
+                      }}
+                    >
+                      🗑
+                    </button>
+                  </>
                 )}
               </div>
             ))}

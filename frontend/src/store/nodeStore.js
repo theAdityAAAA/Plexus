@@ -18,7 +18,7 @@ export const useNodeStore = create((set, get) => ({
 
   createCustomNode: async (nodeData) => {
     try {
-      const res = await axios.post("http://localhost:5000/api/custom-nodes", nodeData);
+      const res = await axios.post("http://localhost:5005/api/custom-nodes", nodeData);
       set({ customNodes: [...get().customNodes, res.data.data] });
       return true;
     } catch (error) {
