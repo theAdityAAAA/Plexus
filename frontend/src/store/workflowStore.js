@@ -51,6 +51,7 @@ export const useWorkflowStore = create((set, get) => ({
   addNewNode: (type, customData = {}) => {
     const newNode = {
       id: `${type}-${Date.now()}`,
+      type: "custom",
       position: {
         x: Math.random() * 500 + 100,
         y: Math.random() * 400 + 100
@@ -103,16 +104,7 @@ export const useWorkflowStore = create((set, get) => ({
     nodes: get().nodes.map((n) =>
       n.id === id
         ? {
-            ...n,
-            style: {
-              background:
-                status === "completed"
-                  ? "#28a745"
-                  : status === "failed"
-                  ? "#dc3545"
-                  : "#ffc107",
-              color: "white"
-            }
+            ...n
           }
         : n
     )
@@ -132,6 +124,7 @@ export const useWorkflowStore = create((set, get) => ({
       workflowId: id,
       nodes: selected.nodes.map((n) => ({
         id: n.id,
+        type: "custom",
         position: { x: Math.random() * 500, y: Math.random() * 400 },
         data: { label: n.type, type: n.type, config: n.config, userCode: n.userCode }
       })),
