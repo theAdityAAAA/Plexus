@@ -11,13 +11,24 @@ import { useNodeStore } from "./store/nodeStore";
 import Toolbox from "./components/Toolbox";
 import NodeEditor from "./components/NodeEditor";
 import CustomNodeWizard from "./components/CustomNodeWizard";
+import CustomNode from "./components/CustomNode";
+import CustomEdge from "./components/CustomEdge";
+
+const nodeTypes = {
+  default: CustomNode,
+  custom: CustomNode, // fallback if custom type used
+};
+
+const edgeTypes = {
+  default: CustomEdge,
+};
 
 const socket = io("http://localhost:5005");
 
 function App() {
   const {
     nodes, edges, workflowId, workflowList,
-    onNodesChange, onEdgesChange, onConnect,
+    onNodesChange, onEdgesChange, onConnect, onEdgeUpdate,
     setNodes, setEdges, setSelectedNode,
     fetchWorkflows, loadWorkflow, saveWorkflow, runWorkflow
   } = useWorkflowStore();
@@ -114,8 +125,11 @@ useEffect(() => {
         <ReactFlow
           nodes={nodes}
           edges={edges}
+          nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
+          onEdgeUpdate={onEdgeUpdate}
           onConnect={(params) => {
             const sourceNode = nodes.find(n => n.id === params.source);
             let branch = null;
@@ -126,7 +140,7 @@ useEffect(() => {
           }}
           onNodeClick={(_, node) => setSelectedNode(node)}
           onPaneClick={() => setSelectedNode(null)}
-          defaultEdgeOptions={{ style: { strokeWidth: 3, stroke: '#94a3b8' } }}
+          defaultEdgeOptions={{ style: { strokeWidth: 3, stroke: '#94a3b8' }, updatable: true }}
           fitView
         >
           <MiniMap nodeStrokeColor="#0f172a" nodeColor="#334155" maskColor="rgba(0,0,0,0.2)" />

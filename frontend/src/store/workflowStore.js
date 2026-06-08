@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { applyNodeChanges, applyEdgeChanges, addEdge } from "reactflow";
+import { applyNodeChanges, applyEdgeChanges, addEdge, updateEdge } from "reactflow";
 import axios from "axios";
 
 export const useWorkflowStore = create((set, get) => ({
@@ -30,6 +30,22 @@ export const useWorkflowStore = create((set, get) => ({
   onConnect: (params, branch = null) =>
     set({
       edges: addEdge({ ...params, data: { branch }, label: branch }, get().edges)
+    }),
+
+  onEdgeUpdate: (oldEdge, newConnection) =>
+    set({
+      edges: updateEdge(oldEdge, newConnection, get().edges)
+    }),
+
+  deleteNode: (id) =>
+    set({
+      nodes: get().nodes.filter((n) => n.id !== id),
+      edges: get().edges.filter((e) => e.source !== id && e.target !== id)
+    }),
+
+  deleteEdge: (id) =>
+    set({
+      edges: get().edges.filter((e) => e.id !== id)
     }),
 
   addNewNode: (type, customData = {}) => {
