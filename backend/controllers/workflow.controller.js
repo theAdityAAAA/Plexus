@@ -84,3 +84,31 @@ exports.getAllWorkflows = async (req, res) => {
     });
   }
 };
+
+exports.updateWorkflow = async (req, res) => {
+  try {
+    const { name, nodes, edges } = req.body;
+
+    const workflow =
+      await Workflow.findByIdAndUpdate(
+        req.params.id,
+        {
+          name,
+          nodes,
+          edges
+        },
+        { new: true }
+      );
+
+    res.json({
+      success: true,
+      data: workflow
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};

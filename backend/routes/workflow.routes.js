@@ -44,6 +44,8 @@ router.get("/", workflowController.getAllWorkflows);
 
 router.post("/", workflowController.createWorkflow);
 
+router.put("/:id", workflowController.updateWorkflow);
+
 // -----------------------------
 // Manual Execute
 // -----------------------------

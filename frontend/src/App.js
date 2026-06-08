@@ -27,7 +27,8 @@ const socket = io("http://localhost:5005");
 
 function App() {
   const {
-    nodes, edges, workflowId, workflowList,
+    nodes, edges, workflowId,  workflowName, workflowList,
+    createWorkflow,saveAsNewWorkflow,
     onNodesChange, onEdgesChange, onConnect, onEdgeUpdate,
     setNodes, setEdges, setSelectedNode,
     fetchWorkflows, loadWorkflow, saveWorkflow, runWorkflow
@@ -90,34 +91,79 @@ useEffect(() => {
   return (
     <div style={{ height: "100vh", background: "#0f172a", overflow: "hidden" }}>
       {/* NAVBAR */}
-      <nav className="navbar navbar-dark bg-dark px-4 border-bottom border-secondary" style={{ height: 60 }}>
-        <span className="navbar-brand h4 mb-0">
-          🚀 NexusFlow Automation Engine <span className="badge bg-primary ms-2 fs-6">Pro</span>
-        </span>
-        <div className="d-flex align-items-center gap-3">
-          <select
-            className="form-select bg-dark text-white border-secondary"
-            style={{ width: 250 }}
-            value={workflowId || ""}
-            onChange={(e) => loadWorkflow(e.target.value)}
-          >
-            <option value="">Select Workflow</option>
-            {workflowList.map((wf) => (
-              <option key={wf._id} value={wf._id}>
-                {wf.name} - {wf._id.slice(-4)}
-              </option>
-            ))}
-          </select>
+       <nav
+  className="navbar navbar-dark bg-dark px-4 border-bottom border-secondary"
+  style={{ height: 60 }}
+>
+  <span className="navbar-brand h4 mb-0">
+    🚀 NexusFlow Automation Engine
+    <span className="badge bg-primary ms-2 fs-6">
+      Pro
+    </span>
+  </span>
 
-          <button onClick={saveWorkflow} className="btn btn-success d-flex align-items-center gap-2">
-            💾 Save
-          </button>
-          <button onClick={runWorkflow} className="btn btn-primary d-flex align-items-center gap-2">
-            ▶ Run
-          </button>
-        </div>
-      </nav>
+  <div className="d-flex align-items-center gap-3">
 
+    <button
+      className="btn btn-success"
+      onClick={() => {
+        const name = prompt(
+          "Enter Workflow Name"
+        );
+
+        if (!name) return;
+
+        createWorkflow(name);
+      }}
+    >
+      ➕ Create Workflow
+    </button>
+
+    <select
+      className="form-select bg-dark text-white border-secondary"
+      style={{ width: 250 }}
+      value={workflowId || ""}
+      onChange={(e) =>
+        loadWorkflow(e.target.value)
+      }
+    >
+      <option value="">
+        Existing Workflows
+      </option>
+
+      {workflowList.map((wf) => (
+        <option
+          key={wf._id}
+          value={wf._id}
+        >
+          {wf.name}
+        </option>
+      ))}
+    </select>
+
+    <button
+      onClick={saveWorkflow}
+      className="btn btn-success d-flex align-items-center gap-2"
+    >
+      💾 Save
+    </button>
+
+    <button
+      onClick={saveAsNewWorkflow}
+      className="btn btn-warning d-flex align-items-center gap-2"
+    >
+      📋 Save As New
+    </button>
+
+    <button
+      onClick={runWorkflow}
+      className="btn btn-primary d-flex align-items-center gap-2"
+    >
+      ▶ Run
+    </button>
+
+  </div>
+</nav>
       {/* MAIN CONTENT */}
       <div style={{ position: "relative", width: "100%", height: "calc(100vh - 60px)" }}>
         <Toolbox />

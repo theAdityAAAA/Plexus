@@ -6,6 +6,7 @@ export const useWorkflowStore = create((set, get) => ({
   nodes: [],
   edges: [],
   workflowId: null,
+  workflowName: "",
   workflowList: [],
   selectedEdge: null,
   selectedNode: null,
@@ -14,8 +15,19 @@ export const useWorkflowStore = create((set, get) => ({
   setNodes: (nodes) => set({ nodes }),
   setEdges: (edges) => set({ edges }),
   setWorkflowId: (id) => set({ workflowId: id }),
+  setWorkflowName: (name) => set({ workflowName: name }),
   setSelectedEdge: (edge) => set({ selectedEdge: edge }),
   setSelectedNode: (node) => set({ selectedNode: node }),
+    createWorkflow: (name) => {
+    set({
+      workflowId: null,
+      workflowName: name,
+      nodes: [],
+      edges: [],
+      selectedNode: null
+    });
+     },
+
 
   onNodesChange: (changes) =>
     set({
@@ -122,6 +134,7 @@ export const useWorkflowStore = create((set, get) => ({
 
     set({
       workflowId: id,
+      workflowName: selected.name,
       nodes: selected.nodes.map((n) => ({
         id: n.id,
         type: "custom",
@@ -138,36 +151,115 @@ export const useWorkflowStore = create((set, get) => ({
     });
   },
 
-  saveWorkflow: async () => {
-    try {
-      const { nodes, edges } = get();
-      const workflow = {
-        name: "Dynamic Workflow",
-        nodes: nodes.map((n) => ({
-          id: n.id,
-          type: n.data.type,
-          config: n.data.config || {},
-          userCode: n.data.userCode || ""
-        })),
-        edges: edges.map((e) => ({
-          source: e.source,
-          target: e.target,
-          data: { branch: e.data?.branch || null }
-        }))
-      };
+    saveWorkflow: async () => {
+  try {
+    const {
+      nodes,
+      edges,
+      workflowId,
+      workflowName
+    } = get();
+   
 
-      const res = await axios.post("http://localhost:5005/api/workflows", workflow);
-      set({ workflowId: res.data.data._id });
-      alert("Workflow Saved 🚀");
-    } catch (error) {
-      console.error(error);
-      alert("Save failed");
+    const workflow = {
+      name: workflowName,
+      nodes: nodes.map((n) => ({
+        id: n.id,
+        type: n.data.type,
+        config: n.data.config || {},
+        userCode: n.data.userCode || ""
+      })),
+      edges: edges.map((e) => ({
+        source: e.source,
+        target: e.target,
+        data: {
+          branch: e.data?.branch || null
+        }
+      }))
+    };
+
+    if (workflowId) {
+      await axios.put(
+        `http://localhost:5005/api/workflows/${workflowId}`,
+        workflow
+      );
+
+      alert("Workflow Updated ✅");
+    } else {
+      const res = await axios.post(
+        "http://localhost:5005/api/workflows",
+        workflow
+      );
+
+      set({
+        workflowId: res.data.data._id
+      });
+
+      alert("Workflow Created ✅");
     }
-  },
 
-  runWorkflow: async () => {
-    const { workflowId } = get();
-    if (!workflowId) return alert("Save workflow first!");
-    await axios.post(`http://localhost:5005/api/workflows/${workflowId}/execute`);
+  } catch (error) {
+    console.error(error);
+    alert("Save failed");
   }
+},
+
+saveAsNewWorkflow: async () => {
+  try {
+    const {
+      nodes,
+      edges
+    } = get();
+
+    const newName = prompt(
+      "Enter new workflow name"
+    );
+
+    if (!newName) return;
+
+    const workflow = {
+      name: newName,
+      nodes: nodes.map((n) => ({
+        id: n.id,
+        type: n.data.type,
+        config: n.data.config || {},
+        userCode: n.data.userCode || ""
+      })),
+      edges: edges.map((e) => ({
+        source: e.source,
+        target: e.target,
+        data: {
+          branch: e.data?.branch || null
+        }
+      }))
+    };
+
+    const res = await axios.post(
+      "http://localhost:5005/api/workflows",
+      workflow
+    );
+
+    set({
+      workflowId: res.data.data._id,
+      workflowName: newName
+    });
+
+    alert("Workflow Duplicated ✅");
+
+  } catch (error) {
+    console.error(error);
+    alert("Save As New failed");
+  }
+},
+
+runWorkflow: async () => {
+  const { workflowId } = get();
+
+  if (!workflowId)
+    return alert("Save workflow first!");
+
+  await axios.post(
+    `http://localhost:5005/api/workflows/${workflowId}/execute`
+  );
+}
 }));
