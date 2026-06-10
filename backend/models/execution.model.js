@@ -31,18 +31,37 @@ const executionSchema = new mongoose.Schema(
     },
 
     logs: [
-      {
-        nodeId: String,
-        status: String,
-        output: mongoose.Schema.Types.Mixed,
-        error: String,
+  {
+    nodeId: String,
 
-        timestamp: {
-          type: Date,
-          default: Date.now
-        }
-      }
-    ],
+    status: {
+      type: String,
+      enum: [
+        "running",
+        "completed",
+        "failed"
+      ]
+    },
+
+    output: mongoose.Schema.Types.Mixed,
+
+    error: String,
+
+    duration: {
+      type: Number,
+      default: 0
+    },
+
+    startedAt: Date,
+
+    endedAt: Date,
+
+    timestamp: {
+      type: Date,
+      default: Date.now
+    }
+  }
+],
 
     currentNodeId: {
       type: String,

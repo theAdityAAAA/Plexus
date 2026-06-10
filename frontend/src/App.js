@@ -96,9 +96,9 @@ useEffect(() => {
   style={{ height: 60 }}
 >
   <span className="navbar-brand h4 mb-0">
-    🚀 NexusFlow Automation Engine
+    🚀ＰＬＥＸＵＳ
     <span className="badge bg-primary ms-2 fs-6">
-      Pro
+      BUILD YOUR BACKEND WITH US IN SECONDS
     </span>
   </span>
 
