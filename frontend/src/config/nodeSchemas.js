@@ -19,21 +19,66 @@ export const nodeSchemas = {
 
   // --- DATABASE & STORAGE ---
   "db-query": [
-    { key: "connectionId", label: "Connection ID", type: "text", default: "db-1" },
-    { key: "tableName", label: "Table / Collection Name", type: "text", default: "users" },
-    { key: "limit", label: "Limit", type: "number", default: 100 }
+    {
+      key: "collection",
+      label: "Collection",
+      type: "text",
+      default: "users"
+    },
+    {
+      key: "query",
+      label: "Query JSON",
+      type: "text",
+      default: "{}"
+    }
   ],
   "db-insert": [
-    { key: "connectionId", label: "Connection ID", type: "text", default: "db-1" },
-    { key: "tableName", label: "Table / Collection Name", type: "text", default: "users" }
+    {
+      key: "collection",
+      label: "Collection",
+      type: "text",
+      default: "users"
+    },
+    {
+      key: "data",
+      label: "Data JSON",
+      type: "text",
+      default: "{}"
+    }
   ],
   "db-delete": [
-    { key: "connectionId", label: "Connection ID", type: "text", default: "db-1" },
-    { key: "tableName", label: "Table / Collection Name", type: "text", default: "users" }
+    {
+      key: "collection",
+      label: "Collection",
+      type: "text",
+      default: "users"
+    },
+    {
+      key: "filter",
+      label: "Filter JSON",
+      type: "text",
+      default: "{}"
+    }
   ],
   "db-update": [
-    { key: "connectionId", label: "Connection ID", type: "text", default: "db-1" },
-    { key: "tableName", label: "Table / Collection Name", type: "text", default: "users" }
+    {
+      key: "collection",
+      label: "Collection",
+      type: "text",
+      default: "users"
+    },
+    {
+      key: "filter",
+      label: "Filter JSON",
+      type: "text",
+      default: "{}"
+    },
+    {
+      key: "update",
+      label: "Update JSON",
+      type: "text",
+      default: "{}"
+    }
   ],
   "file-operations": [
     { key: "provider", label: "Storage Provider", type: "select", options: ["Local", "S3", "GCS"], default: "Local" },
@@ -43,10 +88,13 @@ export const nodeSchemas = {
 
   // --- CONTROL FLOW ---
   "condition": [
-    { key: "operandA", label: "Operand A", type: "text", default: "{{input.value}}" },
-    { key: "operator", label: "Operator", type: "select", options: ["==", "!=", ">", "<", "contains"], default: "==" },
-    { key: "operandB", label: "Operand B", type: "text", default: "100" }
-  ],
+  {
+    key: "expression",
+    label: "Expression",
+    type: "text",
+    default: "true"
+  }
+],
   "loop": [
     { key: "arrayPath", label: "Array to Iterate", type: "text", default: "{{input.items}}" },
     { key: "mode", label: "Output Mode", type: "select", options: ["Aggregate", "Fire-and-Forget"], default: "Aggregate" }
@@ -67,40 +115,110 @@ export const nodeSchemas = {
   ],
 
   // --- DATA INTEGRATION ---
-  "external-api-call": [
-    { key: "method", label: "Method", type: "select", options: ["GET", "POST", "PUT", "DELETE"], default: "GET" },
-    { key: "url", label: "URL", type: "text", default: "https://api.example.com/data" }
-  ],
-  "data-transformer": [
-    { key: "mappings", label: "Mappings (JSON)", type: "text", default: "[{\"source\": \"input.a\", \"dest\": \"b\"}]" }
-  ],
+ "external-api-call": [
+  {
+    key: "url",
+    label: "URL",
+    type: "text",
+    default: ""
+  },
+  {
+    key: "method",
+    label: "Method",
+    type: "select",
+    options: ["GET", "POST", "PUT", "DELETE"],
+    default: "GET"
+  },
+  {
+    key: "headers",
+    label: "Headers JSON",
+    type: "text",
+    default: "{}"
+  },
+  {
+    key: "body",
+    label: "Body JSON",
+    type: "text",
+    default: "{}"
+  }
+],
+ "data-transformer": [
+  {
+    key: "code",
+    label: "Transform Code",
+    type: "text",
+    default: "return input;"
+  }
+],
   "custom-script": [
     { key: "language", label: "Language", type: "select", options: ["JavaScript", "Python"], default: "JavaScript" }
   ],
 
   // --- AI & ML ---
-  "llm-prompt": [
-    { key: "provider", label: "Provider", type: "select", options: ["OpenAI", "Anthropic", "Local"], default: "OpenAI" },
-    { key: "model", label: "Model", type: "text", default: "gpt-4" },
-    { key: "systemPrompt", label: "System Prompt", type: "text", default: "You are a helpful assistant." },
-    { key: "temperature", label: "Temperature", type: "number", default: 0.7 }
-  ],
+ "llm-prompt": [
+  {
+    key: "provider",
+    label: "Provider",
+    type: "select",
+    options: ["openai", "gemini", "anthropic"],
+    default: "openai"
+  },
+  {
+    key: "model",
+    label: "Model",
+    type: "text",
+    default: ""
+  },
+  {
+    key: "prompt",
+    label: "Prompt",
+    type: "text",
+    default: ""
+  }
+],
   "model-inference": [
     { key: "endpoint", label: "Endpoint", type: "text", default: "https://api.huggingface.co/models/..." },
     { key: "modelId", label: "Model ID", type: "text", default: "" }
   ],
   "text-processing": [
-    { key: "operation", label: "Operation", type: "select", options: ["Summarize", "Extract Entities", "Classify", "Translate"], default: "Summarize" },
-    { key: "textPath", label: "Input Text Path", type: "text", default: "{{input.text}}" }
-  ],
+  {
+    key: "operation",
+    label: "Operation",
+    type: "select",
+    options: ["uppercase", "lowercase", "extract"],
+    default: "uppercase"
+  },
+  {
+    key: "text",
+    label: "Text",
+    type: "text",
+    default: ""
+  }
+],
 
   // --- MISC / CORE ---
   "payment-check": [
     { key: "provider", label: "Payment Provider", type: "select", options: ["Stripe", "PayPal"], default: "Stripe" }
   ],
   "email-send": [
-    { key: "to", label: "To Email", type: "text", default: "" },
-    { key: "subject", label: "Subject", type: "text", default: "" }
+    {
+      key: "to",
+      label: "To Email",
+      type: "text",
+      default: ""
+    },
+    {
+      key: "subject",
+      label: "Subject",
+      type: "text",
+      default: ""
+    },
+    {
+      key: "message",
+      label: "Message",
+      type: "text",
+      default: ""
+    }
   ]
 };
 

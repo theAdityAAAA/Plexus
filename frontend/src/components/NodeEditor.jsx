@@ -111,6 +111,8 @@ const nodeExecutionData = useWorkflowStore(
       </div>
     </>
   )}
+
+  
 </div>
     
 
@@ -120,27 +122,48 @@ const nodeExecutionData = useWorkflowStore(
           Settings
         </h6>
 
-        <div className="mb-3">
-          <label className="text-muted small">
-            Node Label
-          </label>
+       <div className="mb-3">
+  <label className="text-white fw-bold">
+    Node Label
+  </label>
 
-          <input
-            type="text"
-            className="form-control bg-dark text-white border-secondary"
-            value={
-              selectedNode.data.label || ""
-            }
-            onChange={(e) =>
-              updateNodeData(
-                selectedNode.id,
-                () => ({
-                  label: e.target.value
-                })
-              )
-            }
-          />
-        </div>
+  <input
+    type="text"
+    className="form-control bg-dark text-white border-secondary"
+    value={selectedNode.data.label || ""}
+    onChange={(e) =>
+      updateNodeData(
+        selectedNode.id,
+        () => ({
+          label: e.target.value
+        })
+      )
+    }
+  />
+</div>
+
+<div className="mb-3">
+  <label className="text-white fw-bold">
+    Alias
+  </label>
+
+  <input
+    type="text"
+    className="form-control bg-dark text-white border-secondary"
+    value={selectedNode.data.alias || ""}
+    onChange={(e) =>
+      updateNodeData(
+        selectedNode.id,
+        () => ({
+          alias: e.target.value
+        })
+      )
+    }
+    placeholder="Customer"
+  />
+  </div>
+
+
 
         {(nodeSchemas[
           selectedNode.data.type
@@ -149,7 +172,7 @@ const nodeExecutionData = useWorkflowStore(
             key={field.key}
             className="mb-3"
           >
-            <label className="text-muted small">
+            <label className="text-white fw-bold">
               {field.label}
             </label>
 

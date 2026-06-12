@@ -4,10 +4,30 @@ const mongoose = require("mongoose");
    NODE SCHEMA
 ========================= */
 const nodeSchema = new mongoose.Schema({
-  id: { type: String, required: true },
-  type: { type: String, required: true },
-  config: { type: Object, default: {} },
-  userCode: { type: String, default: "" }
+  id: {
+    type: String,
+    required: true
+  },
+
+  type: {
+    type: String,
+    required: true
+  },
+
+  alias: {
+    type: String,
+    default: ""
+  },
+
+  config: {
+    type: Object,
+    default: {}
+  },
+
+  userCode: {
+    type: String,
+    default: ""
+  }
 });
 
 /* =========================

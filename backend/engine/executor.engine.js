@@ -4,6 +4,11 @@ const CustomNode = require("../models/customNode.model");
 const { executeInSandbox } = require("../services/sandbox.service");
 const crypto = require("crypto");
 
+const {
+  resolveVariables
+} = require(
+  "../services/variableResolver.service"
+);
 const nodeRegistry = require("../services/node.service");
 
 const runningExecutions = new Map();
@@ -230,13 +235,31 @@ io.emit("node-status", {
     // ---------------------------------
     // EXECUTE CORE LOGIC
     // ---------------------------------
-    if (handler) {
-      result = await handler(node.config, executionContext);
-    } else {
-      // For custom nodes, default input is the global workflow input
-      result = executionContext.input;
-    }
+  if (handler) {
 
+const resolvedConfig =
+  resolveVariables(
+    node.config || {},
+    executionContext
+  );
+console.log(
+  "RAW CONFIG:",
+  node.config
+);
+
+console.log("RESOLVED CONFIG:", resolvedConfig)
+
+
+result = await handler(
+  resolvedConfig,
+  executionContext
+);
+
+} else {
+
+  result = executionContext.input;
+
+}
     // ---------------------------------
     // EXECUTE USER HOOK / CUSTOM CODE
     // ---------------------------------
@@ -252,10 +275,17 @@ duration = endTime - startTime;
     // ---------------------------------
     // STORE OUTPUT
     // ---------------------------------
-    executionContext.outputs[
-      currentNodeId
-    ] = result;
 
+
+const outputKey =
+  node.alias &&
+  node.alias.trim() !== ""
+    ? node.alias
+    : currentNodeId;
+
+executionContext.outputs[
+  outputKey
+] = result;
     // ---------------------------------
     // STORE LOGS IN MEMORY
     // ---------------------------------

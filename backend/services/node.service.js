@@ -46,16 +46,23 @@ const nodeRegistry = {
         });
       }
 
-      const mailOptions = {
-        from: process.env.EMAIL_USER && process.env.EMAIL_USER !== "#" ? process.env.EMAIL_USER : '"NexusFlow Engine" <test@ethereal.email>',
-        to: context?.input?.email || config?.to || process.env.EMAIL_USER || "user@example.com",
-        subject: config?.subject || "NexusFlow Workflow Email 🚀",
-        text: config?.message || `Hello ${context?.input?.name || "User"},\n\nYour workflow executed successfully 🚀`
-      };
+     const mailOptions = {
+  from:
+    process.env.EMAIL_USER &&
+    process.env.EMAIL_USER !== "#"
+      ? process.env.EMAIL_USER
+      : '"NexusFlow Engine" <test@ethereal.email>',
+
+  to: config.to,
+
+  subject: config.subject,
+
+  text: config.message
+};
 
       const info = await activeTransporter.sendMail(mailOptions);
       console.log("Email sent successfully:", info.messageId);
-      
+
       if (!process.env.EMAIL_USER || process.env.EMAIL_USER === "#") {
         console.log("📧 Preview your test email here: " + nodemailer.getTestMessageUrl(info));
       }
@@ -133,7 +140,7 @@ const nodeRegistry = {
     const path = config?.filePath;
     if (!path) throw new Error("File path is required");
 
-    switch(config?.operation) {
+    switch (config?.operation) {
       case 'write':
         const writeData = config?.content || (typeof context.input === 'string' ? context.input : JSON.stringify(context.input));
         await fs.writeFile(path, writeData);
@@ -187,7 +194,7 @@ const nodeRegistry = {
     const url = config?.url;
     if (!url) throw new Error("URL is required");
     console.log(`Calling external API: ${url}...`);
-    
+
     const options = {
       method: config?.method || 'GET',
       headers: typeof config?.headers === 'string' ? JSON.parse(config.headers) : (config?.headers || {}),
@@ -195,12 +202,12 @@ const nodeRegistry = {
     if (config?.body && (options.method !== 'GET' && options.method !== 'HEAD')) {
       options.body = typeof config?.body === 'string' ? config.body : JSON.stringify(config.body);
     }
-    
+
     try {
       const response = await fetch(url, options);
       const text = await response.text();
       let data = text;
-      try { data = JSON.parse(text); } catch(e) {} // parse json if possible
+      try { data = JSON.parse(text); } catch (e) { } // parse json if possible
       return { status: response.status, data };
     } catch (err) {
       throw new Error(`API Call Failed: ${err.message}`);
@@ -217,8 +224,7 @@ const nodeRegistry = {
   },
   "custom-script": async (config, context) => {
     console.log("Executing Custom Script...");
-    const code = config?.code || 'function execute(input, context) { return input; }';
-    return await executeInSandbox(code, context.input, context);
+    return context.input;
   },
 
   // --- AI & ML ---
@@ -236,14 +242,14 @@ const nodeRegistry = {
         messages: [{ role: "user", content: prompt }]
       });
       return { text: response.choices[0].message.content, usage: response.usage };
-    } 
+    }
     else if (provider === "gemini") {
       if (!process.env.GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is missing in .env");
       const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
       const aiModel = genAI.getGenerativeModel({ model: model || "gemini-pro" });
       const result = await aiModel.generateContent(prompt);
       return { text: result.response.text() };
-    } 
+    }
     else if (provider === "anthropic") {
       if (!process.env.ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is missing in .env");
       const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -254,7 +260,7 @@ const nodeRegistry = {
       });
       return { text: msg.content[0].text, usage: msg.usage };
     }
-    
+
     throw new Error(`Unsupported AI provider: ${provider}`);
   },
   "model-inference": async (config, context) => {
@@ -267,10 +273,10 @@ const nodeRegistry = {
     const text = config?.text || context.input?.text || (typeof context.input === 'string' ? context.input : "");
     if (!text) return { result: "" };
 
-    switch(config?.operation) {
+    switch (config?.operation) {
       case 'uppercase': return { result: text.toUpperCase() };
       case 'lowercase': return { result: text.toLowerCase() };
-      case 'extract': 
+      case 'extract':
         const regex = new RegExp(config?.regex || ".*");
         const match = text.match(regex);
         return { result: match ? match[0] : null, matches: match };
