@@ -276,6 +276,8 @@ export const useWorkflowStore = create((set, get) => ({
     if (!workflowId)
       return alert("Save workflow first!");
 
+    set({ nodeExecutionData: {} });
+
     await axios.post(
       `http://localhost:5005/api/workflows/${workflowId}/execute`
     );

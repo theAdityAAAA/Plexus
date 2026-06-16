@@ -1,6 +1,7 @@
 import React from "react";
 import { useWorkflowStore } from "../store/workflowStore";
 import MonacoCodeEditor from "./MonacoCodeEditor";
+import VariableField from "./VariableField";
 import { nodeSchemas, nodeDefaultCode } from "../config/nodeSchemas";
 
 export default function NodeEditor() {
@@ -224,18 +225,18 @@ const nodeExecutionData = useWorkflowStore(
                 />
               </div>
             ) : (
-              <input
+              <VariableField
+                id={`${selectedNode.id}-${field.key}`}
                 type={field.type}
-                className="form-control bg-dark text-white border-secondary"
                 value={
                   selectedNode.data.config?.[
                     field.key
                   ] ?? field.default
                 }
-                onChange={(e) =>
+                onChange={(value) =>
                   handleConfigChange(
                     field.key,
-                    e.target.value
+                    value
                   )
                 }
               />

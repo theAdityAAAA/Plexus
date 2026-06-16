@@ -96,6 +96,8 @@ export default function CustomNode({ id, data, isConnectable, selected }) {
   const hoverShadow = "0 4px 6px rgba(0, 0, 0, 0.05), 0 10px 24px rgba(0, 0, 0, 0.08)";
   const selectedShadow = "0 0 0 2px #bde2f2, 0 0 0 4px #3b82f6, 0 4px 12px rgba(59, 130, 246, 0.3)";
   const errorShadow = "0 0 0 2px #bde2f2, 0 0 0 4px #ef4444, 0 4px 12px rgba(239, 68, 68, 0.3)";
+  const runningShadow = "0 0 0 2px #fef08a, 0 0 0 5px rgba(234, 179, 8, 0.45), 0 12px 28px rgba(234, 179, 8, 0.2)";
+  const successShadow = "0 0 0 2px #bbf7d0, 0 0 0 4px rgba(34, 197, 94, 0.35), 0 10px 24px rgba(34, 197, 94, 0.16)";
 
   let currentShadow = defaultShadow;
   let currentBorder = "#E5E7EB"; // Light gray border
@@ -103,6 +105,12 @@ export default function CustomNode({ id, data, isConnectable, selected }) {
   if (status === "failed") {
     currentShadow = errorShadow;
     currentBorder = "#ef4444";
+  } else if (status === "running" || status === "pending") {
+    currentShadow = runningShadow;
+    currentBorder = "#eab308";
+  } else if (status === "completed") {
+    currentShadow = successShadow;
+    currentBorder = "#22c55e";
   } else if (selected) {
     currentShadow = selectedShadow;
     currentBorder = "#3b82f6";

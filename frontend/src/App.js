@@ -1,5 +1,5 @@
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import ReactFlow, { Background, Controls, MiniMap } from "reactflow";
 import "reactflow/dist/style.css";
@@ -13,6 +13,9 @@ import NodeEditor from "./components/NodeEditor";
 import CustomNodeWizard from "./components/CustomNodeWizard";
 import CustomNode from "./components/CustomNode";
 import CustomEdge from "./components/CustomEdge";
+import VariableExplorer from "./components/VariableExplorer";
+import ExecutionHistoryPage from "./components/ExecutionHistoryPage";
+import ExecutionDetailsPage from "./components/ExecutionDetailsPage";
 
 const nodeTypes = {
   default: CustomNode,
@@ -26,6 +29,9 @@ const edgeTypes = {
 const socket = io("http://localhost:5005");
 
 function App() {
+  const [activeView, setActiveView] = useState("builder");
+  const [selectedExecutionId, setSelectedExecutionId] = useState(null);
+
   const {
     nodes, edges, workflowId,  workflowName, workflowList,
     createWorkflow,saveAsNewWorkflow,
@@ -103,7 +109,28 @@ useEffect(() => {
   </span>
 
   <div className="d-flex align-items-center gap-3">
+    <div className="btn-group" role="group" aria-label="Primary navigation">
+      <button
+        type="button"
+        className={`btn btn-sm ${activeView === "builder" ? "btn-primary" : "btn-outline-light"}`}
+        onClick={() => setActiveView("builder")}
+      >
+        Builder
+      </button>
+      <button
+        type="button"
+        className={`btn btn-sm ${activeView !== "builder" ? "btn-primary" : "btn-outline-light"}`}
+        onClick={() => {
+          setSelectedExecutionId(null);
+          setActiveView("executions");
+        }}
+      >
+        Executions
+      </button>
+    </div>
 
+    {activeView === "builder" && (
+      <>
     <button
       className="btn btn-success"
       onClick={() => {
@@ -161,12 +188,39 @@ useEffect(() => {
     >
       ▶ Run
     </button>
+      </>
+    )}
 
   </div>
 </nav>
-      {/* MAIN CONTENT */}
-      <div style={{ position: "relative", width: "100%", height: "calc(100vh - 60px)" }}>
+      {activeView === "executions" && !selectedExecutionId && (
+        <ExecutionHistoryPage
+          onOpenExecution={(executionId) => {
+            setSelectedExecutionId(executionId);
+          }}
+        />
+      )}
+
+      {activeView === "executions" && selectedExecutionId && (
+        <ExecutionDetailsPage
+          executionId={selectedExecutionId}
+          onBack={() => setSelectedExecutionId(null)}
+        />
+      )}
+
+      {activeView === "builder" && (
+        <div style={{ position: "relative", width: "100%", height: "calc(100vh - 60px)" }}>
         <Toolbox />
+        <VariableExplorer
+          title="Variable Explorer"
+          style={{
+            position: "absolute",
+            top: 10,
+            left: 320,
+            bottom: 20,
+            zIndex: 9
+          }}
+        />
         
         <ReactFlow
           nodes={nodes}
@@ -196,6 +250,7 @@ useEffect(() => {
 
         <NodeEditor />
       </div>
+      )}
 
       <CustomNodeWizard />
     </div>

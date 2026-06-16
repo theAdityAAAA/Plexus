@@ -15,9 +15,11 @@ connectDB();
 
 const workflowRoutes = require("./routes/workflow.routes");
 const customNodeRoutes = require("./routes/customNode.routes");
+const executionRoutes = require("./routes/execution.routes");
 
 app.use("/api/workflows", workflowRoutes);
 app.use("/api/custom-nodes", customNodeRoutes);
+app.use("/api/executions", executionRoutes);
 
 app.get("/", (req, res) => {
   res.send("Server is working 🚀");
