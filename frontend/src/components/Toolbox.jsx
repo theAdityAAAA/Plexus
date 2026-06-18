@@ -24,10 +24,14 @@ export default function Toolbox() {
     { type: "event-listener", label: "📡 Event Listener", category: "Triggers" },
 
     // DATABASE & STORAGE
-    { type: "db-query", label: "🔍 DB Query/Read", category: "Database" },
-    { type: "db-insert", label: "➕ DB Insert/Create", category: "Database" },
-    { type: "db-update", label: "✏️ DB Update", category: "Database" },
-    { type: "db-delete", label: "🗑 DB Delete", category: "Database" },
+    // { type: "db-query", label: "🔍 DB Query/Read", category: "Database" },
+    // { type: "db-insert", label: "➕ DB Insert/Create", category: "Database" },
+    // { type: "db-update", label: "✏️ DB Update", category: "Database" },
+    // { type: "db-delete", label: "🗑 DB Delete", category: "Database" },
+    { type: "mongo-find", label: "Mongo Find", category: "Database" },
+    { type: "mongo-insert", label: "Mongo Insert", category: "Database" },
+    { type: "mongo-update", label: "Mongo Update", category: "Database" },
+    { type: "mongo-delete", label: "Mongo Delete", category: "Database" },
     { type: "file-operations", label: "📁 File Operations", category: "Database" },
 
     // CONTROL FLOW

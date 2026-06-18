@@ -1,6 +1,9 @@
 const cron = require('node-cron');
 const Workflow = require('../models/workflow.model');
 const executorEngine = require('../engine/executor.engine');
+const {
+  validateWorkflowGraph
+} = require('../engine/graphPlanner.engine');
 
 // Store active cron jobs to prevent duplicates and allow reloading
 const activeCronJobs = new Map();
@@ -19,6 +22,7 @@ exports.initTriggers = (app, io) => {
       }
 
       console.log(`[Webhook] Triggered for workflow: ${workflowId}`);
+      const validation = validateWorkflowGraph(workflow);
       
       // Pass the request body/query as input
       const inputData = {
@@ -29,11 +33,21 @@ exports.initTriggers = (app, io) => {
       };
 
       // Start workflow
-      const executionId = await executorEngine(workflowId, io, inputData);
+      const executionId = await executorEngine(
+        workflowId,
+        io,
+        inputData,
+        {
+          executionMode:
+            req.body?.executionMode ||
+            req.query?.executionMode
+        }
+      );
 
       res.status(200).json({ 
         message: "Workflow triggered successfully", 
-        executionId 
+        executionId,
+        validation
       });
 
     } catch (err) {
@@ -69,6 +83,10 @@ exports.initTriggers = (app, io) => {
             console.log(`[Cron] Scheduling workflow ${workflow._id} on ${cronExp}`);
             const job = cron.schedule(cronExp, async () => {
               console.log(`[Cron] Triggering workflow: ${workflow._id}`);
+              const validation = validateWorkflowGraph(workflow);
+              if (!validation.valid || validation.warnings.length > 0) {
+                console.log("[Cron] Graph validation report:", validation);
+              }
               const inputData = { triggeredAt: new Date().toISOString() };
               await executorEngine(workflow._id, io, inputData);
             });

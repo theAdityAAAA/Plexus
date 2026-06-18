@@ -1,6 +1,18 @@
 import { create } from "zustand";
 import { applyNodeChanges, applyEdgeChanges, addEdge, updateEdge } from "reactflow";
 import axios from "axios";
+import { nodeSchemas } from "../config/nodeSchemas";
+
+const getDefaultConfig = (type) =>
+  (nodeSchemas[type] || []).reduce((config, field) => ({
+    ...config,
+    [field.key]: field.default
+  }), {});
+
+const getSerializedNodeConfig = (node) => ({
+  ...getDefaultConfig(node.data.type),
+  ...(node.data.config || {})
+});
 
 export const useWorkflowStore = create((set, get) => ({
   nodes: [],
@@ -11,6 +23,7 @@ export const useWorkflowStore = create((set, get) => ({
   selectedEdge: null,
   selectedNode: null,
   nodeExecutionData: {},
+  graphValidationReport: null,
 
   setNodes: (nodes) => set({ nodes }),
   setEdges: (edges) => set({ edges }),
@@ -18,13 +31,16 @@ export const useWorkflowStore = create((set, get) => ({
   setWorkflowName: (name) => set({ workflowName: name }),
   setSelectedEdge: (edge) => set({ selectedEdge: edge }),
   setSelectedNode: (node) => set({ selectedNode: node }),
+  setGraphValidationReport: (report) => set({ graphValidationReport: report }),
+  clearGraphValidationReport: () => set({ graphValidationReport: null }),
   createWorkflow: (name) => {
     set({
       workflowId: null,
       workflowName: name,
       nodes: [],
       edges: [],
-      selectedNode: null
+      selectedNode: null,
+      graphValidationReport: null
     });
   },
 
@@ -68,7 +84,15 @@ export const useWorkflowStore = create((set, get) => ({
         x: Math.random() * 500 + 100,
         y: Math.random() * 400 + 100
       },
-      data: { label: customData.name || type, type, ...customData }
+      data: {
+        label: customData.name || type,
+        type,
+        ...customData,
+        config: {
+          ...getDefaultConfig(type),
+          ...(customData.config || {})
+        }
+      }
     };
     set({ nodes: [...get().nodes, newNode] });
   },
@@ -163,7 +187,8 @@ export const useWorkflowStore = create((set, get) => ({
         target: e.target,
         data: { branch: e.data?.branch || null },
         label: e.data?.branch || null
-      }))
+      })),
+      graphValidationReport: null
     });
   },
 
@@ -183,7 +208,7 @@ export const useWorkflowStore = create((set, get) => ({
           id: n.id,
           type: n.data.type,
           alias: n.data.alias || "",
-          config: n.data.config || {},
+          config: getSerializedNodeConfig(n),
           userCode: n.data.userCode || ""
         })),
         edges: edges.map((e) => ({
@@ -196,10 +221,14 @@ export const useWorkflowStore = create((set, get) => ({
       };
 
       if (workflowId) {
-        await axios.put(
+        const res = await axios.put(
           `http://localhost:5005/api/workflows/${workflowId}`,
           workflow
         );
+
+        set({
+          graphValidationReport: res.data.validation || null
+        });
 
         alert("Workflow Updated ✅");
       } else {
@@ -209,7 +238,8 @@ export const useWorkflowStore = create((set, get) => ({
         );
 
         set({
-          workflowId: res.data.data._id
+          workflowId: res.data.data._id,
+          graphValidationReport: res.data.validation || null
         });
 
         alert("Workflow Created ✅");
@@ -240,7 +270,7 @@ export const useWorkflowStore = create((set, get) => ({
           id: n.id,
           type: n.data.type,
           alias: n.data.alias || "",
-          config: n.data.config || {},
+          config: getSerializedNodeConfig(n),
           userCode: n.data.userCode || ""
         })),
         edges: edges.map((e) => ({
@@ -259,7 +289,8 @@ export const useWorkflowStore = create((set, get) => ({
 
       set({
         workflowId: res.data.data._id,
-        workflowName: newName
+        workflowName: newName,
+        graphValidationReport: res.data.validation || null
       });
 
       alert("Workflow Duplicated ✅");
@@ -278,8 +309,12 @@ export const useWorkflowStore = create((set, get) => ({
 
     set({ nodeExecutionData: {} });
 
-    await axios.post(
+    const res = await axios.post(
       `http://localhost:5005/api/workflows/${workflowId}/execute`
     );
+
+    set({
+      graphValidationReport: res.data.validation || null
+    });
   }
 }));

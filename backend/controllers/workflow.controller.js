@@ -1,5 +1,8 @@
 const Workflow = require("../models/workflow.model");
 const executorEngine = require("../engine/executor.engine");
+const {
+  validateWorkflowGraph
+} = require("../engine/graphPlanner.engine");
 
 /* =========================
    CREATE WORKFLOW
@@ -7,6 +10,10 @@ const executorEngine = require("../engine/executor.engine");
 exports.createWorkflow = async (req, res) => {
   try {
     const { name, nodes = [], edges = [] } = req.body;
+    const validation = validateWorkflowGraph({
+      nodes,
+      edges
+    });
 
     if (!name) {
       return res.status(400).json({ message: "Name is required" });
@@ -22,7 +29,8 @@ exports.createWorkflow = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      data: workflow
+      data: workflow,
+      validation
     });
 
   } catch (error) {
@@ -45,14 +53,27 @@ exports.executeWorkflow = async (req, res) => {
       return res.status(404).json({ message: "Workflow not found" });
     }
 
+    const validation =
+      validateWorkflowGraph(workflow);
+
     const io = req.app.get("io");
 
     // 🔥 DO NOT await (runtime engine is recursive)
-    executorEngine(workflow._id, io);
+    executorEngine(
+      workflow._id,
+      io,
+      {},
+      {
+        executionMode:
+          req.body?.executionMode ||
+          req.query?.executionMode
+      }
+    );
 
     res.json({
       success: true,
-      message: "Execution started"
+      message: "Execution started",
+      validation
     });
 
   } catch (error) {
@@ -88,6 +109,10 @@ exports.getAllWorkflows = async (req, res) => {
 exports.updateWorkflow = async (req, res) => {
   try {
     const { name, nodes, edges } = req.body;
+    const validation = validateWorkflowGraph({
+      nodes: nodes || [],
+      edges: edges || []
+    });
 
     const workflow =
       await Workflow.findByIdAndUpdate(
@@ -102,7 +127,8 @@ exports.updateWorkflow = async (req, res) => {
 
     res.json({
       success: true,
-      data: workflow
+      data: workflow,
+      validation
     });
 
   } catch (error) {

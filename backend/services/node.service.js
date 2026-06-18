@@ -1,7 +1,12 @@
 const nodemailer = require("nodemailer");
-const mongoose = require("mongoose");
 const fs = require("fs").promises;
 const { executeInSandbox } = require("./sandbox.service");
+const {
+  mongoFind,
+  mongoInsert,
+  mongoUpdate,
+  mongoDelete
+} = require("./mongoNode.service");
 const { OpenAI } = require("openai");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const Anthropic = require("@anthropic-ai/sdk");
@@ -102,39 +107,14 @@ const nodeRegistry = {
   },
 
   // --- DATABASE & STORAGE ---
-  "db-query": async (config, context) => {
-    if (!config?.collection) throw new Error("Collection name is required for db-query");
-    console.log(`Executing DB Query on ${config.collection}...`);
-    const collection = mongoose.connection.db.collection(config.collection);
-    const query = typeof config?.query === 'string' ? JSON.parse(config.query) : (config?.query || {});
-    const results = await collection.find(query).toArray();
-    return { results, count: results.length };
-  },
-  "db-insert": async (config, context) => {
-    if (!config?.collection) throw new Error("Collection name is required for db-insert");
-    console.log(`Executing DB Insert into ${config.collection}...`);
-    const collection = mongoose.connection.db.collection(config.collection);
-    const data = typeof config?.data === 'string' ? JSON.parse(config.data) : (config?.data || context.input || {});
-    const result = await collection.insertOne(data);
-    return { insertedId: result.insertedId, success: result.acknowledged };
-  },
-  "db-update": async (config, context) => {
-    if (!config?.collection) throw new Error("Collection name is required for db-update");
-    console.log(`Executing DB Update on ${config.collection}...`);
-    const collection = mongoose.connection.db.collection(config.collection);
-    const filter = typeof config?.filter === 'string' ? JSON.parse(config.filter) : (config?.filter || {});
-    const updateDoc = typeof config?.update === 'string' ? JSON.parse(config.update) : (config?.update || {});
-    const result = await collection.updateMany(filter, updateDoc);
-    return { matchedCount: result.matchedCount, modifiedCount: result.modifiedCount, success: result.acknowledged };
-  },
-  "db-delete": async (config, context) => {
-    if (!config?.collection) throw new Error("Collection name is required for db-delete");
-    console.log(`Executing DB Delete on ${config.collection}...`);
-    const collection = mongoose.connection.db.collection(config.collection);
-    const filter = typeof config?.filter === 'string' ? JSON.parse(config.filter) : (config?.filter || {});
-    const result = await collection.deleteMany(filter);
-    return { deletedCount: result.deletedCount, success: result.acknowledged };
-  },
+  "mongo-find": mongoFind,
+  "mongo-insert": mongoInsert,
+  "mongo-update": mongoUpdate,
+  "mongo-delete": mongoDelete,
+  "db-query": mongoFind,
+  "db-insert": mongoInsert,
+  "db-update": mongoUpdate,
+  "db-delete": mongoDelete,
   "file-operations": async (config, context) => {
     console.log(`Executing File Operation (${config?.operation || 'read'})...`);
     const path = config?.filePath;
@@ -187,6 +167,14 @@ const nodeRegistry = {
   "merge": async (config, context) => {
     console.log("Executing Merge...");
     return { merged: true, data: context.input };
+  },
+  "join": async (config, context) => {
+    console.log("Executing Join...");
+    return {
+      joined: true,
+      mode: config?.mode || "wait-all",
+      data: context.input
+    };
   },
 
   // --- DATA INTEGRATION ---

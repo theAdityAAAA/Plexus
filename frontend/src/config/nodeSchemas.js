@@ -30,6 +30,24 @@ export const nodeSchemas = {
       label: "Query JSON",
       type: "text",
       default: "{}"
+    },
+    {
+      key: "projection",
+      label: "Projection JSON",
+      type: "text",
+      default: "{}"
+    },
+    {
+      key: "sort",
+      label: "Sort JSON",
+      type: "text",
+      default: "{}"
+    },
+    {
+      key: "limit",
+      label: "Limit",
+      type: "number",
+      default: 50
     }
   ],
   "db-insert": [
@@ -76,6 +94,110 @@ export const nodeSchemas = {
     {
       key: "update",
       label: "Update JSON",
+      type: "text",
+      default: "{}"
+    },
+    {
+      key: "upsert",
+      label: "Upsert",
+      type: "checkbox",
+      default: false
+    },
+    {
+      key: "allowCollectionWideUpdate",
+      label: "Allow Collection-wide Update",
+      type: "checkbox",
+      default: false
+    }
+  ],
+  "mongo-find": [
+    {
+      key: "collection",
+      label: "Collection",
+      type: "text",
+      default: "users"
+    },
+    {
+      key: "filter",
+      label: "Filter JSON",
+      type: "text",
+      default: "{}"
+    },
+    {
+      key: "projection",
+      label: "Projection JSON",
+      type: "text",
+      default: "{}"
+    },
+    {
+      key: "sort",
+      label: "Sort JSON",
+      type: "text",
+      default: "{}"
+    },
+    {
+      key: "limit",
+      label: "Limit",
+      type: "number",
+      default: 50
+    }
+  ],
+  "mongo-insert": [
+    {
+      key: "collection",
+      label: "Collection",
+      type: "text",
+      default: "users"
+    },
+    {
+      key: "document",
+      label: "Document JSON",
+      type: "text",
+      default: "{}"
+    }
+  ],
+  "mongo-update": [
+    {
+      key: "collection",
+      label: "Collection",
+      type: "text",
+      default: "users"
+    },
+    {
+      key: "filter",
+      label: "Filter JSON",
+      type: "text",
+      default: "{}"
+    },
+    {
+      key: "update",
+      label: "Update JSON",
+      type: "text",
+      default: "{}"
+    },
+    {
+      key: "upsert",
+      label: "Upsert",
+      type: "checkbox",
+      default: false
+    },
+    {
+      key: "allowCollectionWideUpdate",
+      label: "Allow Collection-wide Update",
+      type: "checkbox",
+      default: false
+    }
+  ],
+  "mongo-delete": [
+    {
+      key: "collection",
+      label: "Collection",
+      type: "text",
+      default: "users"
+    },
+    {
+      key: "filter",
+      label: "Filter JSON",
       type: "text",
       default: "{}"
     }
@@ -231,6 +353,10 @@ export const nodeDefaultCode = {
   "db-insert": "function execute(input, context) {\n  // Prepare data payload for insertion\n  return input;\n}",
   "db-delete": "function execute(input, context) {\n  return input;\n}",
   "db-update": "function execute(input, context) {\n  return input;\n}",
+  "mongo-find": "function execute(input, context) {\n  // Return all matching documents by default\n  return input.documents || [];\n}",
+  "mongo-insert": "function execute(input, context) {\n  return input;\n}",
+  "mongo-update": "function execute(input, context) {\n  return input;\n}",
+  "mongo-delete": "function execute(input, context) {\n  return input;\n}",
   "file-operations": "function execute(input, context) {\n  return input;\n}",
   "condition": "function execute(input, context) {\n  // Return a branch name like 'True' or 'False'\n  return input.value === true ? 'True' : 'False';\n}",
   "loop": "function execute(input, context) {\n  // Process current loop item\n  return { ...input, processed: true };\n}",

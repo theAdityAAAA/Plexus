@@ -16,6 +16,7 @@ import CustomEdge from "./components/CustomEdge";
 import VariableExplorer from "./components/VariableExplorer";
 import ExecutionHistoryPage from "./components/ExecutionHistoryPage";
 import ExecutionDetailsPage from "./components/ExecutionDetailsPage";
+import GraphValidationPanel from "./components/GraphValidationPanel";
 
 const nodeTypes = {
   default: CustomNode,
@@ -211,6 +212,7 @@ useEffect(() => {
       {activeView === "builder" && (
         <div style={{ position: "relative", width: "100%", height: "calc(100vh - 60px)" }}>
         <Toolbox />
+        <GraphValidationPanel />
         <VariableExplorer
           title="Variable Explorer"
           style={{
